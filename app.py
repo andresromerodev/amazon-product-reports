@@ -1,3 +1,6 @@
+import json
+from logging import error
+
 from flask import Flask, jsonify
 from dotenv import load_dotenv
 from services import email_service
@@ -25,17 +28,20 @@ def send_email():
     response = None
     try:
         email_service.send_email()
-        response = app.response_class(
-            response=jsonify(message="success"),
-            status=200,
-            mimetype='application/json'
-        )
-    except:
-        response = app.response_class(
-            response=jsonify(message="error"),
-            status=500,
-            mimetype='application/json'
-        )
+        response = jsonify(message='success'), 200
+    except Exception as e:
+        response = jsonify(error=str(e)), 500
+    return response
+
+
+@app.route('/api/v1/reports/send', methods=['POST'])
+def send_report():
+    response = None
+    try:
+        email_service.send_report('asin')
+        response = jsonify(message='success'), 200
+    except Exception as e:
+        response = jsonify(error=str(e)), 500
     return response
 
 
