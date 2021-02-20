@@ -49,5 +49,4 @@ def send_report(report_name):
 
 
 if __name__ == "__main__":
-    debug_config = True if os.environ.get('ENABLE_DEBUG') == 'True' else False
-    app.run(host='0.0.0.0', port=5000, debug=debug_config)
+    app.run(host='0.0.0.0', port=5000, debug=False)
