@@ -1,10 +1,10 @@
+import sys
 import time
 import threading
 
 from schedule import Scheduler
 
 SUCCESS_SCHEDULE = 'Task scheduled successfully'
-FAILURE_SCHEDULE = 'Task could no be scheduled:'
 
 
 class TaskScheduler:
@@ -18,9 +18,9 @@ class TaskScheduler:
         """
         try:
             self.task_schedule.every(minutes).minutes.do(task)
-            print(SUCCESS_SCHEDULE)
+            print(SUCCESS_SCHEDULE, file=sys.stdout)
         except Exception as error:
-            print(FAILURE_SCHEDULE + error)
+            print(error, file=sys.stderr)
 
     def daily(self, time, task):
         """
@@ -28,9 +28,9 @@ class TaskScheduler:
         """
         try:
             self.task_schedule.every().day.at(time).do(task)
-            print(SUCCESS_SCHEDULE)
+            print(SUCCESS_SCHEDULE, file=sys.stdout)
         except Exception as error:
-            print(FAILURE_SCHEDULE + error)
+            print(error, file=sys.stderr)
 
     def monday_to_friday(self, time, task):
         """
@@ -42,9 +42,9 @@ class TaskScheduler:
             self.task_schedule.every().wednesday.at(time).do(task)
             self.task_schedule.every().thursday.at(time).do(task)
             self.task_schedule.every().friday.at(time).do(task)
-            print(SUCCESS_SCHEDULE)
+            print(SUCCESS_SCHEDULE, file=sys.stdout)
         except Exception as error:
-            print(FAILURE_SCHEDULE + error)
+            print(error, file=sys.stderr)
 
     def run_tasks_in_background(self, interval=1):
         """
