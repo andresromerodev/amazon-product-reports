@@ -1,10 +1,18 @@
+import os
 import logging
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify
 from services import email_service
 from flask_apscheduler import APScheduler
 from reports.reports import run_asin_report
 
+REPORTS_JOB_ID = os.environ.get('REPORTS_JOB_ID')
+REPORTS_CRON_WEEK = os.environ.get('REPORTS_CRON_WEEK')
+REPORTS_CRON_DAYS = os.environ.get('REPORTS_CRON_DAYS')
+REPORTS_CRON_HOUR = os.environ.get('REPORTS_CRON_HOUR')
+REPORTS_CRON_MINUTE = os.environ.get('REPORTS_CRON_MINUTE')
+REPORTS_CRON_TIMEZONE = os.environ.get('REPORTS_CRON_TIMEZONE')
 
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
@@ -15,10 +23,11 @@ scheduler.init_app(app)
 scheduler.start()
 
 
-@scheduler.task('cron', id='job_run_reports', week='*',
-                day_of_week='mon,tue,wed,thu,fri,sat', hour='15', minute='10')
+@scheduler.task('cron', id=REPORTS_JOB_ID, week=REPORTS_CRON_WEEK,
+                day_of_week=REPORTS_CRON_DAYS, hour=REPORTS_CRON_HOUR,
+                minute=REPORTS_CRON_MINUTE, timezone=REPORTS_CRON_TIMEZONE)
 def job_run_reports():
-    app.logger.info('Running job_run_reports()')
+    app.logger.info('Running reports...')
     run_asin_report()
 
 
@@ -40,4 +49,4 @@ def send_report(report_name):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
