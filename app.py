@@ -16,7 +16,7 @@ scheduler.start()
 
 
 @scheduler.task('cron', id='job_run_reports', week='*',
-                day_of_week='MON,TUE,WED,THU,FRI,SAT', hour=15)
+                day_of_week='mon,tue,wed,thu,fri,sat', hour='15', minute='10')
 def job_run_reports():
     app.logger.info('Running job_run_reports()')
     run_asin_report()
