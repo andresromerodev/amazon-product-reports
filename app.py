@@ -1,7 +1,6 @@
 import os
 import logging
 
-from dotenv import load_dotenv
 from flask import Flask, jsonify
 from services import email_service
 from flask_apscheduler import APScheduler
@@ -49,4 +48,4 @@ def send_report(report_name):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False, load_dotenv=True)
