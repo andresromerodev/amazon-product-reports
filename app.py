@@ -1,17 +1,19 @@
-import os
-
-from dotenv import load_dotenv
 from flask import Flask, jsonify
 from services import email_service
+from flask_apscheduler import APScheduler
 from reports.reports import run_asin_report
-from tasks.task_scheduler import TaskScheduler
-
-load_dotenv()  # take environment variables from .env.
 
 app = Flask(__name__)
-scheduler = TaskScheduler()
 
-ASIN_REPORT_TIME = api_key = os.environ.get('ASIN_REPORT_TIME')
+scheduler = APScheduler()
+scheduler.api_enabled = True
+scheduler.init_app(app)
+scheduler.start()
+
+
+@scheduler.task('cron', id='job_run_reports', minute='03')
+def job_run_reports():
+    run_asin_report()
 
 
 @app.route('/api/v1/health', methods=['GET'])
@@ -30,12 +32,5 @@ def send_report():
     return response
 
 
-@app.before_first_request
-def tasks_schedule_setup():
-    scheduler.daily(time=ASIN_REPORT_TIME, task=run_asin_report)
-
-
 if __name__ == "__main__":
-    backgroud_tasks = scheduler.run_tasks_in_background()
-    app.run(debug=True)
-    backgroud_tasks.set()
+    app.run(host='0.0.0.0', port=5000)

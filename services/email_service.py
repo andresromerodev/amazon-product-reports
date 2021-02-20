@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 from sendgrid.helpers.mail import (
     Mail, Attachment, FileContent, FileName, FileType, Disposition, Content, Email, To)
 
-load_dotenv()  # take environment variables from .env.
+load_dotenv()
 
-API_KEY = api_key = os.environ.get('SENDGRID_API_KEY')
-FROM_EMAIL = api_key = os.environ.get('SENDGRID_FROM_EMAIL')
-TO_EMAIL = api_key = os.environ.get('SENDGRID_TO_EMAIL')
+API_KEY = os.environ.get('SENDGRID_API_KEY')
+FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL')
+TO_EMAIL = os.environ.get('SENDGRID_TO_EMAIL')
 
 sg = sendgrid.SendGridAPIClient(API_KEY)
 
