@@ -1,5 +1,6 @@
 import os
 import logging
+from apscheduler.schedulers.base import STATE_PAUSED
 
 from flask import Flask, jsonify
 from services import email_service
@@ -48,4 +49,4 @@ def send_report(report_name):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=False, load_dotenv=True)
+    app.run(debug=True, use_reloader=False)
