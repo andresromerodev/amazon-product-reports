@@ -3,8 +3,11 @@ import logging
 from apscheduler.schedulers.base import STATE_PAUSED
 
 from flask import Flask, jsonify
-from services import email_service
 from flask_apscheduler import APScheduler
+from services import (
+    email_service,
+    amazon_service
+)
 from reports.reports import run_asin_report
 
 REPORTS_JOB_ID = os.environ.get('REPORTS_JOB_ID')
@@ -29,6 +32,16 @@ scheduler.start()
 def job_run_reports():
     app.logger.info('Running reports...')
     run_asin_report()
+
+@app.route('/api/v1/create_report', methods=['GET'])
+def create_report():
+    response = None
+    try:
+        amazon_service.create_report()
+        response = jsonify(message='success'), 200
+    except Exception as e:
+        response = jsonify(error=str(e)), 500
+    return response
 
 
 @app.route('/api/v1/health', methods=['GET'])
