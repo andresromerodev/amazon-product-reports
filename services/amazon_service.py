@@ -21,6 +21,8 @@ def get_product_data():
     html = requests.get(url, headers=HEADERS)
     soup = BeautifulSoup(html.content, features="lxml")
 
+    print(soup)
+
     # Product information
     name = soup.find(id='productTitle').get_text().strip()
 
