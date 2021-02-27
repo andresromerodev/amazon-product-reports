@@ -33,11 +33,12 @@ def job_run_reports():
     app.logger.info('Running reports...')
     run_asin_report()
 
+
 @app.route('/api/v1/create_report', methods=['GET'])
 def create_report():
     response = None
     try:
-        amazon_service.create_report()
+        amazon_service.get_product_data()
         response = jsonify(message='success'), 200
     except Exception as e:
         response = jsonify(error=str(e)), 500
