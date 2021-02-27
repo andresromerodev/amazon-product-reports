@@ -38,7 +38,7 @@ def job_run_reports():
 def create_report():
     response = None
     try:
-        amazon_service.get_product_data()
+        amazon_service.create_report()
         response = jsonify(message='success'), 200
     except Exception as e:
         response = jsonify(error=str(e)), 500
