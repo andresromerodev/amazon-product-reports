@@ -1,6 +1,16 @@
 {
     "products": [
         {
+            "sku": "UT-X84W-ZTPT",
+            "asin": "B00QVR0O6Q",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "CelluliteOil8oz",
+            "asin": "B07HFFMY2X",
+            "account": "Majestic Pure"
+        },
+        {
             "sku": "NG-IWXD-5PE7",
             "asin": "B01FZRK3WW",
             "account": "Majestic Pure"
@@ -33,11 +43,6 @@
         {
             "sku": "AJ-CD9K-SAOC",
             "asin": "B00QR7FTLU",
-            "account": "Majestic Pure"
-        },
-        {
-            "sku": "UT-X84W-ZTPT",
-            "asin": "B00QVR0O6Q",
             "account": "Majestic Pure"
         },
         {
