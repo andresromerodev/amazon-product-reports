@@ -1,66 +1,53 @@
-import os
-import logging
-from apscheduler.schedulers.base import STATE_PAUSED
-
-from flask import Flask, jsonify
-from flask_apscheduler import APScheduler
-from services import (
-    email_service,
-    amazon_service
-)
-from reports.reports import run_asin_report
-
-REPORTS_JOB_ID = os.environ.get('REPORTS_JOB_ID')
-REPORTS_CRON_WEEK = os.environ.get('REPORTS_CRON_WEEK')
-REPORTS_CRON_DAYS = os.environ.get('REPORTS_CRON_DAYS')
-REPORTS_CRON_HOUR = os.environ.get('REPORTS_CRON_HOUR')
-REPORTS_CRON_MINUTE = os.environ.get('REPORTS_CRON_MINUTE')
-REPORTS_CRON_TIMEZONE = os.environ.get('REPORTS_CRON_TIMEZONE')
-
-app = Flask(__name__)
-app.logger.setLevel(logging.INFO)
-
-scheduler = APScheduler()
-scheduler.api_enabled = True
-scheduler.init_app(app)
-scheduler.start()
+import time
+import threading
+import tkinter as tk
+from tkinter.constants import DISABLED, NORMAL
+from services import amazon_service
 
 
-@scheduler.task('cron', id=REPORTS_JOB_ID, week=REPORTS_CRON_WEEK,
-                day_of_week=REPORTS_CRON_DAYS, hour=REPORTS_CRON_HOUR,
-                minute=REPORTS_CRON_MINUTE, timezone=REPORTS_CRON_TIMEZONE)
-def job_run_reports():
-    app.logger.info('Running reports...')
-    run_asin_report()
+root = tk.Tk()
+
+root.title("Amazon Reports")
+
+main_canvas = tk.Canvas(root, width=300, height=300)
+main_canvas.pack()
+
+run_report_btn_text = tk.StringVar()
+run_report_btn_text.set('Run report')
+
+notification_label_text = tk.StringVar()
+
+run_report_btn = tk.Button(
+    textvariable=run_report_btn_text, fg='black', width=25)
+
+main_canvas.create_window(150, 150, window=run_report_btn)
+
+success = tk.Label(root, textvariable=notification_label_text,
+                   fg='green', font=('arial', 12, 'bold'))
+
+main_canvas.create_window(150, 200, window=success)
 
 
-@app.route('/api/v1/create_report', methods=['GET'])
-def create_report():
-    response = None
-    try:
-        amazon_service.create_report()
-        response = jsonify(message='success'), 200
-    except Exception as e:
-        response = jsonify(error=str(e)), 500
-    return response
+def success_notification():
+    run_report_btn_text.set('Run report')
+    run_report_btn.config(state=NORMAL)
+    notification_label_text.set('Report created, check your email.')
+    time.sleep(3)
+    notification_label_text.set('')
 
 
-@app.route('/api/v1/health', methods=['GET'])
-def health():
-    return jsonify(status='up')
+def action_create_report():
+    run_report_btn_text.set('Report is running...')
+    run_report_btn.config(state=DISABLED)
+    t_report = threading.Thread(
+        target=amazon_service.create_report, args=(success_notification,))
+    t_report.start()
 
 
-@app.route('/api/v1/reports/send/<report_name>', methods=['POST'])
-def send_report(report_name):
-    app.logger.info(f'Sending report: {report_name}')
-    response = None
-    try:
-        email_service.send_report(report_name)
-        response = jsonify(message='success'), 200
-    except Exception as e:
-        response = jsonify(error=str(e)), 500
-    return response
+def main():
+    run_report_btn.config(command=action_create_report)
+    root.mainloop()
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    main()

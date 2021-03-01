@@ -1,72 +1,126 @@
 import re
-import time
 import json
-import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as condition
+from services.email_service import send_report
+
+PATH = './drivers/chromedriver.exe'
 
 
-def get_product_data(product):
+def set_delivery_to_nyc(driver):
+    driver.get('https://www.amazon.com/?ref=icp_country_us')
+    location_popover = driver.find_element_by_id(
+        'nav-global-location-popover-link')
+    location_popover.click()
+    WebDriverWait(driver, 100).until(
+        condition.element_to_be_clickable((By.ID, 'GLUXZipUpdateInput')))
+    location_input = driver.find_element_by_id('GLUXZipUpdateInput')
+    location_input.click()
+    location_input.send_keys('10001')  # NYC General ZIP code
+    location_input.send_keys(Keys.RETURN)  # RETURN == ENTER
+
+
+def get_product_data(driver, product):
     url = 'http://www.amazon.com/dp/product/' + product['asin']
 
-    HEADERS = (
-        {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36',
-            'Accept-Language': 'en-US, en;q=0.5'
+    driver.get(url)
+
+    # this renders the JS code and stores all
+    # of the information in static HTML code.
+    html = driver.page_source
+
+    # Now, we could simply apply bs4 to html variable
+    soup = BeautifulSoup(html, 'html.parser')
+
+    try:
+        # Product information
+        name = soup.find(id='productTitle').get_text().strip()
+    except:
+        # Dog Page
+        return {
+            'Account': product['account'],
+            'SKU': product['sku'],
+            'Name': '',
+            'Status': 'Active',
+            'ASIN': product['asin'],
+            'Customer Reviews': '',
+            'Q & A': '',
+            'Reviews Rating': '',
+            'Category': '',
+            'Sub. Cat': '',
+            'Sub.Cat2': '',
+            'Available/Unavailable': '',
+            'Comments': 'Dog Page'
         }
-    )
 
-    html = requests.get(url, headers=HEADERS)
-    soup = BeautifulSoup(html.content, features="lxml")
+    qa_html = soup.select('#askATFLink')
 
-    # Product information
-    name = soup.find(id='productTitle').get_text().strip()
+    try:
+        if qa_html:
+            qa = ''
+            qa_content = qa_html[0].find_all('span')
+            if qa_content:
+                qa = qa_content[0].get_text()
+                qa = int(''.join(filter(str.isdigit, qa)))
+        else:
+            qa = ''
+    except:
+        print('qa')
 
-    asin = soup.select(".askAsin")[0].get('value')
+    score = soup.select('i[class*="a-icon a-icon-star a-star-"] span')
 
-    qaHtml = soup.select('#askATFLink')
-
-    if qaHtml:
-        qa = qaHtml[0].find_all('span')[0].get_text()
-        qa = int(''.join(filter(str.isdigit, qa)))
-    else:
-        qa = ''
-
-    score = soup.select('i[class*="a-icon a-icon-star a-star-"]')
-
-    if score:
-        review_score = float(
-            score[0].get_text().split(' ')[0].replace(",", ".")
-        )
-    else:
-        review_score = ''
+    try:
+        if score:
+            review_score_str = score[0].get_text().split(' ')[
+                0].replace(",", ".")
+            review_score = float(review_score_str)
+        else:
+            review_score = ''
+    except:
+        print('score')
 
     count = soup.select('#acrCustomerReviewText')
-
-    if count:
-        review_count = int(count[0].get_text().split(
-            ' ')[0].replace(".", "").replace(',', ""))
-    else:
-        review_count = ''
+    try:
+        if count:
+            review_count = int(count[0].get_text().split(
+                ' ')[0].replace(".", "").replace(',', ""))
+        else:
+            review_count = ''
+    except:
+        print('count')
 
     # checking if there is "Out of stock"
     try:
-        soup.select('#exportAlternativeContentTitle')[0].get_text().strip()
+        soup.select('#availability .a-color-success')
         stock = 'Available'
     except:
-        # if there is any error in the previous try statements, it means the product is available
-        stock = 'Out of Stock'
+        stock = 'Unavailable'
+        print('stock')
 
-    regex = re.compile('.*/bestsellers/.*')
-    categoriesHtml = soup.find_all("a", {"href": regex})
+    try:
+        regex = re.compile('.*/bestsellers/.*')
+        categories_html = soup.find_all("a", {"href": regex})
 
-    if "Best Sellers Rank" not in str(categoriesHtml[0].parent):
-        categories = re.findall('#\d+\,*\d+', str(categoriesHtml[1].parent))
-    else:
-        categories = re.findall('#\d+\,*\d+', str(categoriesHtml[0].parent))
+        if categories_html:
+            if "Best Sellers Rank" not in str(categories_html[0].parent):
+                categories = re.findall(
+                    '#\d+\,*\d+', str(categories_html[1].parent))
+            else:
+                categories = re.findall(
+                    '#\d+\,*\d+', str(categories_html[0].parent))
+        else:
+            categories = []
+    except:
+        categories = []
+        print('categories')
 
     print(f'Name = {name}')
-    print(f'ASIN = {asin}')
+    print(f'ASIN = {product["asin"]}')
     print(f'Review_Score = {review_score}')
     print(f'Review_Count = {review_count}')
     print(f'QA = {qa}')
@@ -77,12 +131,12 @@ def get_product_data(product):
     data = {
         'Account': product['account'],
         'SKU': product['sku'],
-        'Name': name if name is not None else '',
+        'Name': name if name else '',
         'Status': 'Active',
         'ASIN': product['asin'],
-        'Customer Reviews': review_count if review_count is not None else '',
-        'Q & A': qa if qa is not None else '',
-        'Reviews Rating': review_score if review_score is not None else '',
+        'Customer Reviews': review_count if review_count else '',
+        'Q & A': qa if qa else '',
+        'Reviews Rating': review_score if review_score else '',
         'Category': categories[0].replace('#', '') if categories else '',
         'Sub. Cat': categories[1].replace('#', '') if len(categories) >= 2 else '',
         'Sub.Cat2': categories[2].replace('#', '') if len(categories) >= 3 else '',
@@ -101,11 +155,9 @@ def get_product_data(product):
 
     return data
 
-    # 'https://towardsdatascience.com/scraping-multiple-amazon-stores-with-python-5eab811453a8'
-    # 'https://www.youtube.com/watch?v=Bg9r_yLk7VY&feature=youtu.be'
 
-
-def create_report():
+def create_report(callback):
+    driver = webdriver.Chrome(PATH)
     df = pd.DataFrame(
         columns=[
             'Account', 'SKU', 'Name', 'Status', 'ASIN', 'Customer Reviews',
@@ -115,15 +167,21 @@ def create_report():
     )
     data = {}
     try:
-
-        with open('./reports/products2.json') as json_file:
+        set_delivery_to_nyc(driver)
+        with open('./reports/products_test.json') as json_file:
             data = json.load(json_file)
         for product in data['products']:
-            df = df.append(get_product_data(product), ignore_index=True)
-            time.sleep(0.5)
+            df = df.append(get_product_data(
+                driver, product), ignore_index=True)
 
-        df.to_excel("./reports/asin2.xlsx", index=False)
+        df.to_excel("./reports/asin_report.xlsx", index=False)
+
+        send_report('asin_report')
 
     except Exception as e:
         print("except")
         print(e)
+
+    finally:
+        driver.close()
+        callback()

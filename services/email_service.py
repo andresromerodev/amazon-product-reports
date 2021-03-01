@@ -21,9 +21,9 @@ def send_report(report_name):
     to_email = To(TO_EMAIL)
 
     today = datetime.datetime.now().strftime('%x')
-    subject = f'Daily ASIN Report {today}'
+    subject = f'ASIN Report {today}'
     content = Content(
-        'text/plain', 'Please find attached the ASIN report for today')
+        'text/plain', 'Please find attached the ASIN report.')
 
     with open(f'./reports/{report_name}.xlsx', 'rb') as f:
         data = f.read()

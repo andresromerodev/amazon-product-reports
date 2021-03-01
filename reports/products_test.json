@@ -1,0 +1,59 @@
+{
+    "products": [
+        {
+            "sku": "CelluliteOil8oz",
+            "asin": "B07HFFMY2X",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "NG-IWXD-5PE7",
+            "asin": "B01FZRK3WW",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "Acnea3ScarWashCleanser",
+            "asin": "B07VXK2RX4",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "6L-S5IM-ZW9C",
+            "asin": "B00PMR3QF2",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "NewPeppermintOil",
+            "asin": "B00PV15BPW",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "UT-X84W-ZTPT",
+            "asin": "B00QVR0O6Q",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "BX-N0NF-ETC9",
+            "asin": "B00Q96XGUU",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "NewLemonOil",
+            "asin": "B00QR6SS6O",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "AJ-CD9K-SAOC",
+            "asin": "B00QR7FTLU",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "JB-RO97-9L06",
+            "asin": "B00STVN68K",
+            "account": "Majestic Pure"
+        },
+        {
+            "sku": "MY-ETEY-F5KK",
+            "asin": "B00TSTZQEY",
+            "account": "Majestic Pure"
+        }
+    ]
+}
