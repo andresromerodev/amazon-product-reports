@@ -27,7 +27,7 @@ def set_delivery_to_nyc(driver):
 
 
 def get_product_data(driver, product):
-    url = 'http://www.amazon.com/dp/product/' + product['asin']
+    url = 'http://www.amazon.com/dp/product/' + product.loc['Asin']
 
     driver.get(url)
 
@@ -44,11 +44,11 @@ def get_product_data(driver, product):
     except:
         # Dog Page
         return {
-            'Account': product['account'],
-            'SKU': product['sku'],
+            'Account': product.loc['Account'],
+            'SKU': product.loc['SKU'],
             'Name': '',
             'Status': 'Active',
-            'ASIN': product['asin'],
+            'ASIN': product.loc['Asin'],
             'Customer Reviews': '',
             'Q & A': '',
             'Reviews Rating': '',
@@ -121,7 +121,7 @@ def get_product_data(driver, product):
         print('categories')
 
     print(f'Name = {name}')
-    print(f'ASIN = {product["asin"]}')
+    print(f'ASIN = {product.loc["Asin"]}')
     print(f'Review_Score = {review_score}')
     print(f'Review_Count = {review_count}')
     print(f'QA = {qa}')
@@ -130,11 +130,11 @@ def get_product_data(driver, product):
     print(f'Size categories = {len(categories)}')
 
     data = {
-        'Account': product['account'],
-        'SKU': product['sku'],
+        'Account': product.loc['Account'],
+        'SKU': product.loc['SKU'],
         'Name': name if name else '',
         'Status': 'Active',
-        'ASIN': product['asin'],
+        'ASIN': product.loc['Asin'],
         'Customer Reviews': review_count if review_count else '',
         'Q & A': qa if qa else '',
         'Reviews Rating': review_score if review_score else '',
@@ -175,11 +175,10 @@ def create_report(callback):
 
     try:
         set_delivery_to_nyc(driver)
-        with open('./reports/products_test.json') as json_file:
-            data = json.load(json_file)
-        for product in data['products']:
+        db = pd.read_excel('./reports/db2.xlsx')
+        for (idx, row) in db.iterrows():
             df = df.append(get_product_data(
-                driver, product), ignore_index=True)
+                driver, row), ignore_index=True)
 
         df.to_excel("./reports/asin_report.xlsx", index=False)
 
