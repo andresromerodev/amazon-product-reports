@@ -25,7 +25,7 @@ def send_report(report_name):
     content = Content(
         'text/plain', 'Please find attached the ASIN report.')
 
-    with open(f'./reports/{report_name}.xlsx', 'rb') as f:
+    with open(f'./reports/{report_name}', 'rb') as f:
         data = f.read()
         f.close()
 

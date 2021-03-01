@@ -2,8 +2,11 @@ import time
 import threading
 import tkinter as tk
 from tkinter.constants import DISABLED, NORMAL
-from services import amazon_service
+from services.amazon_service import create_report
 
+COLOR_ACTION = '#118ab2'
+COLOR_RUNNING = '#a8dadc'
+COLOR_SUCCESS = '#06d6a0'
 
 root = tk.Tk()
 
@@ -13,36 +16,42 @@ root.resizable(0, 0)
 main_canvas = tk.Canvas(root, width=300, height=300)
 main_canvas.pack()
 
-run_report_btn_text = tk.StringVar()
-run_report_btn_text.set('Run report')
+run_report_btn_text = tk.StringVar(value='Run Report')
+notifications_text = tk.StringVar()
 
-notification_label_text = tk.StringVar()
-
-run_report_btn = tk.Button(
-    textvariable=run_report_btn_text, fg='black', width=25)
+run_report_btn = tk.Button(textvariable=run_report_btn_text, bg=COLOR_ACTION,
+                           fg='white', font=('arial', 10, 'bold'), width=25)
 
 main_canvas.create_window(150, 150, window=run_report_btn)
 
-success = tk.Label(root, textvariable=notification_label_text,
-                   fg='green', font=('arial', 12, 'bold'))
+notifications = tk.Label(root, textvariable=notifications_text,
+                         fg=COLOR_SUCCESS, font=('arial', 12, 'bold'))
 
-main_canvas.create_window(150, 200, window=success)
+main_canvas.create_window(150, 200, window=notifications)
 
 
-def success_notification():
-    run_report_btn_text.set('Run report')
-    run_report_btn.config(state=NORMAL)
-    notification_label_text.set('Report created, check your email.')
-    time.sleep(3)
-    notification_label_text.set('')
+def on_report_success():
+    run_report_btn_text.set('Run Report')
+    run_report_btn.config(state=NORMAL, bg=COLOR_ACTION)
+    show_success_notification()
 
 
 def action_create_report():
-    run_report_btn_text.set('Report is running...')
-    run_report_btn.config(state=DISABLED)
     t_report = threading.Thread(
-        target=amazon_service.create_report, args=(success_notification,))
+        target=create_report, args=(on_report_success,))
     t_report.start()
+    set_app_to_running_state()
+
+
+def show_success_notification():
+    notifications_text.set('Success, check your email.')
+    time.sleep(3)
+    notifications_text.set('')
+
+
+def set_app_to_running_state():
+    run_report_btn_text.set('Running...')
+    run_report_btn.config(state=DISABLED, bg=COLOR_RUNNING)
 
 
 def main():

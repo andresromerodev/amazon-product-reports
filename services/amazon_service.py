@@ -1,5 +1,4 @@
 import re
-import json
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -157,7 +156,7 @@ def get_product_data(driver, product):
     return data
 
 
-def create_report(callback):
+def create_report(on_report_success):
     options = webdriver.ChromeOptions()
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
@@ -171,18 +170,16 @@ def create_report(callback):
         ]
     )
 
-    data = {}
-
     try:
         set_delivery_to_nyc(driver)
-        db = pd.read_excel('./reports/db2.xlsx')
+        db = pd.read_excel('./database/database_test.xlsx')
         for (idx, row) in db.iterrows():
             df = df.append(get_product_data(
                 driver, row), ignore_index=True)
 
         df.to_excel("./reports/asin_report.xlsx", index=False)
 
-        send_report('asin_report')
+        send_report('asin_report.xlsx')
 
     except Exception as e:
         print("except")
@@ -190,4 +187,4 @@ def create_report(callback):
 
     finally:
         driver.close()
-        callback()
+        on_report_success()
