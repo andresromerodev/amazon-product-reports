@@ -8,6 +8,7 @@ from services import amazon_service
 root = tk.Tk()
 
 root.title("Amazon Reports")
+root.resizable(0, 0)
 
 main_canvas = tk.Canvas(root, width=300, height=300)
 main_canvas.pack()

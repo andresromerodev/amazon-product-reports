@@ -3,6 +3,7 @@ import json
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -157,7 +158,11 @@ def get_product_data(driver, product):
 
 
 def create_report(callback):
-    driver = webdriver.Chrome(PATH)
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+
+    driver = webdriver.Chrome(executable_path=PATH, options=options)
+
     df = pd.DataFrame(
         columns=[
             'Account', 'SKU', 'Name', 'Status', 'ASIN', 'Customer Reviews',
@@ -165,7 +170,9 @@ def create_report(callback):
             'Available/Unavailable', 'Comments'
         ]
     )
+
     data = {}
+
     try:
         set_delivery_to_nyc(driver)
         with open('./reports/products_test.json') as json_file:
