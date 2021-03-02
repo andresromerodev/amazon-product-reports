@@ -137,9 +137,9 @@ def get_product_data(driver, product):
         'Customer Reviews': review_count if review_count else '',
         'Q & A': qa if qa else '',
         'Reviews Rating': review_score if review_score else '',
-        'Category': categories[0].replace('#', '') if categories else '',
-        'Sub. Cat': categories[1].replace('#', '') if len(categories) >= 2 else '',
-        'Sub.Cat2': categories[2].replace('#', '') if len(categories) >= 3 else '',
+        'Category': categories[0].replace('#', '').replace(',', '') if categories else '',
+        'Sub. Cat': categories[1].replace('#', '').replace(',', '') if len(categories) >= 2 else '',
+        'Sub.Cat2': categories[2].replace('#', '').replace(',', '') if len(categories) >= 3 else '',
         'Available/Unavailable': stock,
     }
 
@@ -172,7 +172,7 @@ def create_report(on_report_success):
 
     try:
         set_delivery_to_nyc(driver)
-        db = pd.read_excel('./database/database_test.xlsx')
+        db = pd.read_excel('./database/database.xlsx')
         for (idx, row) in db.iterrows():
             df = df.append(get_product_data(
                 driver, row), ignore_index=True)
