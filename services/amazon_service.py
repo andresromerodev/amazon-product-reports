@@ -130,6 +130,8 @@ def get_product_data(driver, product):
 
     data = {
         'Account': product.loc['Account'],
+        'Type': product.loc['Type'],
+        'Code': product.loc['Code'],
         'SKU': product.loc['SKU'],
         'Name': name if name else '',
         'Status': 'Active',
@@ -149,7 +151,7 @@ def get_product_data(driver, product):
             missing.append(key)
 
     if missing:
-        data['Comments'] = 'Lose ' + ', '.join(missing)
+        data['Comments'] = 'No ' + ', '.join(missing)
     else:
         data['Comments'] = ''
 
@@ -164,9 +166,9 @@ def create_report(on_report_success):
 
     df = pd.DataFrame(
         columns=[
-            'Account', 'SKU', 'Name', 'Status', 'ASIN', 'Customer Reviews',
-            'Q & A', 'Reviews Rating', 'Category', 'Sub. Cat', 'Sub.Cat2',
-            'Available/Unavailable', 'Comments'
+            'Account', 'Type', 'Code', '', 'SKU', 'Name', 'Status', 'ASIN',
+            'Customer Reviews', 'Q & A', 'Reviews Rating', 'Category', 'Sub. Cat',
+            'Sub.Cat2', 'Available/Unavailable', 'Comments'
         ]
     )
 
