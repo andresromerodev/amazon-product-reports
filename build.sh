@@ -10,8 +10,9 @@ mkdir ./dist/app/reports
 # NOTE: add the env variables after building the app
 cp -r .env.development ./dist/app/.env
 
-# copy database to dist/app folder
-cp -r ./database ./dist/app
+# copy database to dist/app/database folder
+mkdir ./dist/app/database
+cp ./database/database.xlsx ./dist/app/database/database.xlsx
 
 # copy drivers to dist/app folder
 cp -r ./drivers ./dist/app

@@ -2,7 +2,6 @@ import re
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,22 +10,29 @@ from services.email_service import send_report
 
 PATH = './drivers/chromedriver.exe'
 
+AMAZON_US_URL = 'https://www.amazon.com/?ref=icp_country_us'
+AMAZON_PRODUCT_URL = 'http://www.amazon.com/dp/product/'
+
+LOCATION_COMPONENT_ID = 'nav-global-location-popover-link'
+LOCATION_INPUT_ID = 'GLUXZipUpdateInput'
+
 
 def set_delivery_to_nyc(driver):
-    driver.get('https://www.amazon.com/?ref=icp_country_us')
-    location_popover = driver.find_element_by_id(
-        'nav-global-location-popover-link')
+    driver.get(AMAZON_US_URL)
+    location_popover = driver.find_element_by_id(LOCATION_COMPONENT_ID)
     location_popover.click()
+
     WebDriverWait(driver, 100).until(
-        condition.element_to_be_clickable((By.ID, 'GLUXZipUpdateInput')))
-    location_input = driver.find_element_by_id('GLUXZipUpdateInput')
-    location_input.click()
-    location_input.send_keys('10001')  # NYC General ZIP code
-    location_input.send_keys(Keys.RETURN)  # RETURN == ENTER
+        condition.element_to_be_clickable((By.ID, LOCATION_INPUT_ID)))
+
+    location_field = driver.find_element_by_id(LOCATION_INPUT_ID)
+    location_field.click()
+    location_field.send_keys('10001')
+    location_field.send_keys(Keys.RETURN)
 
 
 def get_product_data(driver, product):
-    url = 'http://www.amazon.com/dp/product/' + product.loc['Asin']
+    url = AMAZON_PRODUCT_URL + product.loc['Asin']
 
     driver.get(url)
 
@@ -41,36 +47,19 @@ def get_product_data(driver, product):
         # Product information
         name = soup.find(id='productTitle').get_text().strip()
     except:
-        # Dog Page
-        return {
-            'Account': product.loc['Account'],
-            'SKU': product.loc['SKU'],
-            'Name': '',
-            'Status': 'Active',
-            'ASIN': product.loc['Asin'],
-            'Customer Reviews': '',
-            'Q & A': '',
-            'Reviews Rating': '',
-            'Category': '',
-            'Sub. Cat': '',
-            'Sub.Cat2': '',
-            'Available/Unavailable': '',
-            'Comments': 'Dog Page'
-        }
+        return dog_page(product)
 
     qa_html = soup.select('#askATFLink')
+    qa_number = ''
 
     try:
         if qa_html:
-            qa = ''
             qa_content = qa_html[0].find_all('span')
             if qa_content:
-                qa = qa_content[0].get_text()
-                qa = int(''.join(filter(str.isdigit, qa)))
-        else:
-            qa = ''
+                qa_number = qa_content[0].get_text()
+                qa_number = int(''.join(filter(str.isdigit, qa_number)))
     except:
-        print('qa')
+        print('Exception occurred with: QA')
 
     score = soup.select('i[class*="a-icon a-icon-star a-star-"] span')
 
@@ -82,7 +71,7 @@ def get_product_data(driver, product):
         else:
             review_score = ''
     except:
-        print('score')
+        print('Exception occurred with: Score')
 
     count = soup.select('#acrCustomerReviewText')
     try:
@@ -92,7 +81,7 @@ def get_product_data(driver, product):
         else:
             review_count = ''
     except:
-        print('count')
+        print('Exception occurred with: Count')
 
     # checking if there is "Out of stock"
     try:
@@ -100,7 +89,7 @@ def get_product_data(driver, product):
         stock = 'Available'
     except:
         stock = 'Unavailable'
-        print('stock')
+        print('Exception occurred with: Stock')
 
     try:
         regex = re.compile('.*/bestsellers/.*')
@@ -117,27 +106,18 @@ def get_product_data(driver, product):
             categories = []
     except:
         categories = []
-        print('categories')
-
-    print(f'Name = {name}')
-    print(f'ASIN = {product.loc["Asin"]}')
-    print(f'Review_Score = {review_score}')
-    print(f'Review_Count = {review_count}')
-    print(f'QA = {qa}')
-    print(f'Stock = {stock}')
-    print(f'Categories = {categories}')
-    print(f'Size categories = {len(categories)}')
+        print('Exception occurred with: Categories')
 
     data = {
         'Account': product.loc['Account'],
-        'Type': product.loc['Type'],
-        'Code': product.loc['Code'],
+        'Type': product.loc['Type'] if product.loc['Type'] else '',
+        'Code': product.loc['Code'] if product.loc['Code'] else '',
         'SKU': product.loc['SKU'],
         'Name': name if name else '',
         'Status': 'Active',
         'ASIN': product.loc['Asin'],
         'Customer Reviews': review_count if review_count else '',
-        'Q & A': qa if qa else '',
+        'Q & A': qa_number if qa_number else '',
         'Reviews Rating': review_score if review_score else '',
         'Category': categories[0].replace('#', '').replace(',', '') if categories else '',
         'Sub. Cat': categories[1].replace('#', '').replace(',', '') if len(categories) >= 2 else '',
@@ -158,7 +138,7 @@ def get_product_data(driver, product):
     return data
 
 
-def create_report(on_report_success):
+def create_report(on_report_success, on_report_failure):
     options = webdriver.ChromeOptions()
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
@@ -176,6 +156,7 @@ def create_report(on_report_success):
         set_delivery_to_nyc(driver)
         db = pd.read_excel('./database/database.xlsx')
         for (idx, row) in db.iterrows():
+            print(f'Processing product number: {idx + 1}')
             df = df.append(get_product_data(
                 driver, row), ignore_index=True)
 
@@ -183,10 +164,30 @@ def create_report(on_report_success):
 
         send_report('asin_report.xlsx')
 
+        on_report_success()
+
     except Exception as e:
-        print("except")
-        print(e)
+        on_report_failure(e)
 
     finally:
         driver.close()
-        on_report_success()
+
+
+def dog_page(product):
+    return {
+        'Account': product.loc['Account'],
+        'Type': product.loc['Type'] if product.loc['Type'] else '',
+        'Code': product.loc['Code'] if product.loc['Code'] else '',
+        'SKU': product.loc['SKU'],
+        'Name': '',
+        'Status': 'Active',
+        'ASIN': product.loc['Asin'],
+        'Customer Reviews': '',
+        'Q & A': '',
+        'Reviews Rating': '',
+        'Category': '',
+        'Sub. Cat': '',
+        'Sub.Cat2': '',
+        'Available/Unavailable': '',
+        'Comments': 'Dog Page'
+    }
