@@ -8,7 +8,7 @@ mkdir ./dist/app/reports
 
 # copy env variables to dist/app folder
 # NOTE: add the env variables after building the app
-cp -r .env.development ./dist/app/.env
+cp -r .env ./dist/app/.env
 
 # copy database to dist/app/database folder
 mkdir ./dist/app/database
