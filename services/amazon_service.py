@@ -18,6 +18,7 @@ AMAZON_PRODUCT_URL = 'http://www.amazon.com/dp/product/'
 LOCATION_COMPONENT_ID = 'nav-global-location-popover-link'
 LOCATION_INPUT_ID = 'GLUXZipUpdateInput'
 
+CATEGORIES_REGEX = '#\d+ in |#\d+\,*\d+ in'
 
 def set_delivery_to_nyc(driver):
     driver.get(AMAZON_US_URL)
@@ -98,12 +99,12 @@ def get_product_data(driver, product):
         categories_html = soup.find_all('div', {'id': 'detailBulletsWrapper_feature_div'})
 
         if categories_html and 'Best Sellers Rank' in str(categories_html):
-            categories = re.findall('#\d+ in |#\d+\,*\d+ in', str(categories_html))
+            categories = re.findall(CATEGORIES_REGEX, str(categories_html))
         else: # New Amazon table view
             categories_html = soup.find_all('table', {'id': 'productDetails_detailBullets_sections1'})
 
             if categories_html and 'Best Sellers Rank' in str(categories_html):
-                categories = re.findall('#\d+ in |#\d+\,*\d+ in', str(categories_html))
+                categories = re.findall(CATEGORIES_REGEX, str(categories_html))
             else:
                 categories = []
     except:

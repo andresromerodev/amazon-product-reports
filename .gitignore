@@ -130,3 +130,8 @@ dmypy.json
 
 # Output reports
 /reports/*.xlsx
+
+# Build folders and files
+/dist
+/build
+./dist.zip
