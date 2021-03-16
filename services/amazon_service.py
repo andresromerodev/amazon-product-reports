@@ -156,7 +156,7 @@ def create_report(on_report_success, on_report_failure):
 
     try:
         set_delivery_to_nyc(driver)
-        db = pd.read_excel('./database/database_development.xlsx')
+        db = pd.read_excel('./database/database.xlsx')
         for (idx, row) in db.iterrows():
             print(f'\nProduct # {idx + 1}')
             product_data = get_product_data(driver, row)
