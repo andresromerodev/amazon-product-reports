@@ -98,15 +98,14 @@ def get_product_data(driver, product):
         categories_html = soup.find_all('div', {'id': 'detailBulletsWrapper_feature_div'})
 
         if categories_html and 'Best Sellers Rank' in str(categories_html):
-            categories = re.findall('#\d+\,*\d+', str(categories_html))
+            categories = re.findall('#\d+ in |#\d+\,*\d+ in', str(categories_html))
         else: # New Amazon table view
             categories_html = soup.find_all('table', {'id': 'productDetails_detailBullets_sections1'})
+
             if categories_html and 'Best Sellers Rank' in str(categories_html):
-                categories = re.findall('#\d+\,*\d+', str(categories_html))
+                categories = re.findall('#\d+ in |#\d+\,*\d+ in', str(categories_html))
             else:
                 categories = []
-
-        print(f'Categories: {categories}')
     except:
         categories = []
         print('Exception occurred with: Categories')
@@ -122,9 +121,9 @@ def get_product_data(driver, product):
         'Customer Reviews': review_count if review_count else '',
         'Q & A': qa_number if qa_number else '',
         'Reviews Rating': review_score if review_score else '',
-        'Category': categories[0].replace('#', '').replace(',', '') if categories else '',
-        'Sub. Cat': categories[1].replace('#', '').replace(',', '') if len(categories) >= 2 else '',
-        'Sub.Cat2': categories[2].replace('#', '').replace(',', '') if len(categories) >= 3 else '',
+        'Category': categories[0].replace('#', '').replace(',', '').replace(' in', '').strip() if categories else '',
+        'Sub. Cat': categories[1].replace('#', '').replace(',', '').replace(' in', '').strip() if len(categories) >= 2 else '',
+        'Sub.Cat2': categories[2].replace('#', '').replace(',', '').replace(' in', '').strip() if len(categories) >= 3 else '',
         'Available/Unavailable': stock,
     }
 
@@ -157,7 +156,7 @@ def create_report(on_report_success, on_report_failure):
 
     try:
         set_delivery_to_nyc(driver)
-        db = pd.read_excel('./database/database.xlsx')
+        db = pd.read_excel('./database/database_development.xlsx')
         for (idx, row) in db.iterrows():
             print(f'\nProduct # {idx + 1}')
             product_data = get_product_data(driver, row)
