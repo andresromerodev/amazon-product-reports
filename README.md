@@ -1,2 +1,24 @@
 # amazon-product-reports
 Python application for scrapping product data to create automated reports.
+
+## Setup
+Environment Variables:
+```shell
+PYTHON_ENV=development
+SENDGRID_API_KEY=super_secret_key
+SENDGRID_FROM_EMAIL=joedoe@mail.com
+SENDGRID_TO_EMAIL=juliadoe@mail.com
+```
+Installing:
+```shell
+pip install -r requirements.txt
+```
+Running:
+```shell
+python app.py
+```
+
+## Creating a New Executable
+```shell
+./build.sh  SENDGRID_API_KEY="ABC" SENDGRID_FROM_EMAIL="joedoe@mail.com" SENDGRID_TO_EMAIL="juliadoe@mail.com"
+```

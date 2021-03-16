@@ -1,14 +1,19 @@
 import re
-import time
+import os
 import json
 import pandas as pd
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as condition
 from services.email_service import send_report
+
+load_dotenv()
+
+PYTHON_ENV = os.environ.get('PYTHON_ENV')
 
 PATH = './drivers/chromedriver.exe'
 
@@ -157,7 +162,12 @@ def create_report(on_report_success, on_report_failure):
 
     try:
         set_delivery_to_nyc(driver)
-        db = pd.read_excel('./database/database.xlsx')
+
+        if PYTHON_ENV == 'development':
+            db = pd.read_excel('./database/database_development.xlsx')
+        elif PYTHON_ENV == 'production':
+            db = pd.read_excel('./database/database.xlsx')
+
         for (idx, row) in db.iterrows():
             print(f'\nProduct # {idx + 1}')
             product_data = get_product_data(driver, row)
