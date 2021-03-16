@@ -1,4 +1,6 @@
 import re
+import time
+import json
 import pandas as pd
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -91,19 +93,20 @@ def get_product_data(driver, product):
         stock = 'Unavailable'
         print('Exception occurred with: Stock')
 
-    try:
-        regex = re.compile('.*/bestsellers/.*')
-        categories_html = soup.find_all("a", {"href": regex})
 
-        if categories_html:
-            if "Best Sellers Rank" not in str(categories_html[0].parent):
-                categories = re.findall(
-                    '#\d+\,*\d+', str(categories_html[1].parent))
+    try:
+        categories_html = soup.find_all('div', {'id': 'detailBulletsWrapper_feature_div'})
+
+        if categories_html and 'Best Sellers Rank' in str(categories_html):
+            categories = re.findall('#\d+\,*\d+', str(categories_html))
+        else: # New Amazon table view
+            categories_html = soup.find_all('table', {'id': 'productDetails_detailBullets_sections1'})
+            if categories_html and 'Best Sellers Rank' in str(categories_html):
+                categories = re.findall('#\d+\,*\d+', str(categories_html))
             else:
-                categories = re.findall(
-                    '#\d+\,*\d+', str(categories_html[0].parent))
-        else:
-            categories = []
+                categories = []
+
+        print(f'Categories: {categories}')
     except:
         categories = []
         print('Exception occurred with: Categories')
@@ -156,9 +159,10 @@ def create_report(on_report_success, on_report_failure):
         set_delivery_to_nyc(driver)
         db = pd.read_excel('./database/database.xlsx')
         for (idx, row) in db.iterrows():
-            print(f'Processing product number: {idx + 1}')
-            df = df.append(get_product_data(
-                driver, row), ignore_index=True)
+            print(f'\nProduct # {idx + 1}')
+            product_data = get_product_data(driver, row)
+            print(json.dumps(product_data, indent=4))
+            df = df.append(product_data, ignore_index=True)
 
         df.to_excel("./reports/asin_report.xlsx", index=False)
 
