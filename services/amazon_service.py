@@ -17,7 +17,7 @@ PYTHON_ENV = os.environ.get('PYTHON_ENV')
 
 PATH = './drivers/chromedriver.exe'
 
-AMAZON_US_URL = 'https://www.amazon.com/?ref=icp_country_us'
+AMAZON_US_URL = 'https://www.amazon.com/?ref=icp_country_us&language=en_US'
 AMAZON_PRODUCT_URL = 'http://www.amazon.com/dp/product/'
 
 LOCATION_COMPONENT_ID = 'nav-global-location-popover-link'
