@@ -1,5 +1,6 @@
 import re
 import os
+import time
 import json
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -15,7 +16,7 @@ load_dotenv()
 
 PYTHON_ENV = os.environ.get('PYTHON_ENV')
 
-PATH = './drivers/chromedriver.exe'
+PATH = './drivers/geckodriver.exe'
 
 AMAZON_US_URL = 'https://www.amazon.com/?ref=icp_country_us&language=en_US'
 AMAZON_PRODUCT_URL = 'http://www.amazon.com/dp/product/'
@@ -27,6 +28,10 @@ CATEGORIES_REGEX = '#\d+ in |#\d+\,*\d+ in'
 
 def set_delivery_to_nyc(driver):
     driver.get(AMAZON_US_URL)
+
+    # this is just to ensure that the page is loaded
+    time.sleep(3) 
+
     location_popover = driver.find_element_by_id(LOCATION_COMPONENT_ID)
     location_popover.click()
 
@@ -34,6 +39,7 @@ def set_delivery_to_nyc(driver):
         condition.element_to_be_clickable((By.ID, LOCATION_INPUT_ID)))
 
     location_field = driver.find_element_by_id(LOCATION_INPUT_ID)
+
     location_field.click()
     location_field.send_keys('10001')
     location_field.send_keys(Keys.RETURN)
@@ -43,6 +49,9 @@ def get_product_data(driver, product):
     url = AMAZON_PRODUCT_URL + product.loc['Asin']
 
     driver.get(url)
+
+    # this is just to ensure that the page is loaded
+    time.sleep(1)
 
     # this renders the JS code and stores all
     # of the information in static HTML code.
@@ -93,8 +102,11 @@ def get_product_data(driver, product):
 
     # checking if there is "Out of stock"
     try:
-        soup.select('#availability .a-color-success')
-        stock = 'Available'
+        stock_html = soup.select('#availability')
+        if 'In Stock' in str(stock_html):
+            stock = 'Available'
+        else:
+            stock = 'Unavailable'
     except:
         stock = 'Unavailable'
         print('Exception occurred with: Stock')
@@ -147,10 +159,8 @@ def get_product_data(driver, product):
 
 
 def create_report(on_report_success, on_report_failure):
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-    driver = webdriver.Chrome(executable_path=PATH, options=options)
+    driver = webdriver.Firefox(executable_path=PATH)
 
     df = pd.DataFrame(
         columns=[
