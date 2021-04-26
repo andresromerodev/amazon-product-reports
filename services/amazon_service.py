@@ -16,7 +16,7 @@ load_dotenv()
 
 PYTHON_ENV = os.environ.get('PYTHON_ENV')
 
-PATH = './drivers/geckodriver.exe'
+PATH = './drivers/chromedriver.exe'
 
 AMAZON_US_URL = 'https://www.amazon.com/?ref=icp_country_us&language=en_US'
 AMAZON_PRODUCT_URL = 'http://www.amazon.com/dp/product/'
@@ -128,6 +128,36 @@ def get_product_data(driver, product):
         categories = []
         print('Exception occurred with: Categories')
 
+    coupon = ''
+
+    try:
+        coupon_html = soup.find_all('div', {'id': 'vpcButton'})
+        if coupon_html and 'coupon' in str(coupon_html):
+            coupon = re.findall('\d%|\$\d.\d+', str(coupon_html))
+    except:
+        coupon = ''
+        print('Exception occurred with: Coupon')
+
+    try:
+        ships_from_html = soup.find_all('span', {'id': 'tabular-buybox-truncate-0'})
+        if ships_from_html:
+            ships_from = re.findall(r'<span class="tabular-buybox-text">(.*?)</span>', str(ships_from_html))
+        else:
+            ships_from = ''
+    except:
+        ships_from = ''
+        print('Exception occurred with: ships_from')
+
+    try:
+        sold_by_html = soup.find_all('a', {'id': 'sellerProfileTriggerId'})
+        if sold_by_html:
+            sold_by = re.findall(r'">(.*?)</a>', str(sold_by_html))
+        else:
+            sold_by = ''
+    except:
+        sold_by = ''
+        print('Exception occurred with: sold_by')
+
     data = {
         'Account': product.loc['Account'],
         'Type': product.loc['Type'] if product.loc['Type'] else '',
@@ -143,6 +173,9 @@ def get_product_data(driver, product):
         'Sub. Cat': categories[1].replace('#', '').replace(',', '').replace(' in', '').strip() if len(categories) >= 2 else '',
         'Sub.Cat2': categories[2].replace('#', '').replace(',', '').replace(' in', '').strip() if len(categories) >= 3 else '',
         'Available/Unavailable': stock,
+        'Coupon': coupon[0] if len(coupon) > 0 else '',
+        'Ships From': ships_from[0] if len(ships_from) > 0 else '',
+        'Sold By': sold_by[0] if len(sold_by) > 0 else ''
     }
 
     missing = []
@@ -159,14 +192,16 @@ def get_product_data(driver, product):
 
 
 def create_report(on_report_success, on_report_failure):
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-    driver = webdriver.Firefox(executable_path=PATH)
+    driver = webdriver.Chrome(executable_path=PATH)
 
     df = pd.DataFrame(
         columns=[
             'Account', 'Type', 'Code', '', 'SKU', 'Name', 'Status', 'ASIN',
             'Customer Reviews', 'Q & A', 'Reviews Rating', 'Category', 'Sub. Cat',
-            'Sub.Cat2', 'Available/Unavailable', 'Comments'
+            'Sub.Cat2', 'Available/Unavailable', 'Coupon', 'Ships From', 'Sold By', 'Comments'
         ]
     )
 
@@ -213,5 +248,8 @@ def dog_page(product):
         'Sub. Cat': '',
         'Sub.Cat2': '',
         'Available/Unavailable': '',
+        'Coupon': '',
+        'Ships From': '',
+        'Sold By': '',
         'Comments': 'Dog Page'
     }
