@@ -15,21 +15,18 @@ from services.email_service import send_report
 load_dotenv()
 
 PYTHON_ENV = os.environ.get('PYTHON_ENV')
-
 PATH = './drivers/chromedriver.exe'
-
-AMAZON_US_URL = 'https://www.amazon.com/?ref=icp_country_us&language=en_US'
-AMAZON_PRODUCT_URL = 'http://www.amazon.com/dp/product/'
-
 LOCATION_COMPONENT_ID = 'nav-global-location-popover-link'
 LOCATION_INPUT_ID = 'GLUXZipUpdateInput'
-
+AMAZON_PRODUCT_URL = 'http://www.amazon.com/dp/product/'
+AMAZON_US_URL = 'https://www.amazon.com/?ref=icp_country_us&language=en_US'
 CATEGORIES_REGEX = '#\d+ in |#\d+\,*\d+ in'
+
 
 def set_delivery_to_nyc(driver):
     driver.get(AMAZON_US_URL)
 
-    # this is just to ensure that the page is loaded
+    # To ensure the page has loaded
     time.sleep(3) 
 
     location_popover = driver.find_element_by_id(LOCATION_COMPONENT_ID)
@@ -50,18 +47,14 @@ def get_product_data(driver, product):
 
     driver.get(url)
 
-    # this is just to ensure that the page is loaded
+    # To ensure the page has loaded
     time.sleep(1)
 
-    # this renders the JS code and stores all
-    # of the information in static HTML code.
     html = driver.page_source
-
-    # Now, we could simply apply bs4 to html variable
     soup = BeautifulSoup(html, 'html.parser')
 
     try:
-        # Product information
+        # Product Title
         name = soup.find(id='productTitle').get_text().strip()
     except:
         return dog_page(product)
@@ -100,7 +93,7 @@ def get_product_data(driver, product):
     except:
         print('Exception occurred with: Count')
 
-    # checking if there is "Out of stock"
+    # Out of Stock
     try:
         stock_html = soup.select('#availability')
         if 'In Stock' in str(stock_html):
