@@ -1,5 +1,5 @@
 # amazon-product-reports
-Python application for scrapping product data to create automated reports.
+A Python application for scraping product data to generate automated reports.
 
 ## Setup
 Environment Variables:
