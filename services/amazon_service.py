@@ -26,7 +26,7 @@ CATEGORIES_REGEX = '#\d+ in |#\d+\,*\d+ in'
 def set_delivery_to_nyc(driver):
     driver.get(AMAZON_US_URL)
 
-    # To ensure the page has loaded
+    # To ensure the page has fully loaded
     time.sleep(3) 
 
     location_popover = driver.find_element_by_id(LOCATION_COMPONENT_ID)
@@ -47,7 +47,7 @@ def get_product_data(driver, product):
 
     driver.get(url)
 
-    # To ensure the page has loaded
+    # To ensure the page has fully loaded
     time.sleep(1)
 
     html = driver.page_source
