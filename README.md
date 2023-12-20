@@ -5,9 +5,9 @@ A Python application for scraping product data to generate automated reports.
 Environment Variables:
 ```shell
 PYTHON_ENV=development
-SENDGRID_API_KEY=super_secret_key
-SENDGRID_FROM_EMAIL=joedoe@mail.com
+SENDGRID_API_KEY=secretkey
 SENDGRID_TO_EMAIL=janedoe@mail.com
+SENDGRID_FROM_EMAIL=joedoe@mail.com
 ```
 Installing:
 ```shell
