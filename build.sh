@@ -35,7 +35,7 @@ SENDGRID_API_KEY=$SENDGRID_API_KEY
 SENDGRID_FROM_EMAIL=$SENDGRID_FROM_EMAIL
 SENDGRID_TO_EMAIL=$SENDGRID_TO_EMAIL" >> ./dist/app/.env
 
-# copy database to dist/app/database folder
+# copy database to dist/app/database folder (set the database file name to your own)
 mkdir ./dist/app/database
 cp ./database/database.xlsx ./dist/app/database/database.xlsx
 
